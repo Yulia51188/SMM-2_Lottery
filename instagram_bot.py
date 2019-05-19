@@ -31,14 +31,24 @@ from dotenv import load_dotenv
 #         bot.upload_photo(image_filename, '{0}'.format(title))
 
 
+def test_instabot(login, password):
+    bot = instabot.Bot()
+    bot.login(username=login, password=password)
+    user_id = bot.get_user_id_from_username("lego")
+    user_info = bot.get_user_info(user_id)
+    return user_info['biography']
+
+
 def main():
     load_dotenv()
     inst_login = os.getenv("INST_LOGIN")
     inst_password = os.getenv("INST_PASSWORD")    
-    args = parse_arguments()
-    if not os.path.isdir(args.folder):
-        exit("The specified directory '{0}' doesn't exist".format(args.folder))
-    publish_to_instagramm(inst_login, inst_password, args.folder)
+    post_url = "https://www.instagram.com/p/BtON034lPhu/"
+    # args = parse_arguments()
+    # if not os.path.isdir(args.folder):
+    #     exit("The specified directory '{0}' doesn't exist".format(args.folder))
+    # publish_to_instagramm(inst_login, inst_password, args.folder)
+    # print(test_instabot(inst_login, inst_password))
 
 
 if __name__ == '__main__':
