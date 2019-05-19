@@ -1,3 +1,17 @@
+#Sublime_files
+*.sublime-project
+*.sublime-workspace
+
+#Folders
+images/
+
+#txt and log files by Instagram
+*.txt
+*.log
+!requirements.txt
+*.checkpoint
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
