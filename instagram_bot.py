@@ -39,6 +39,16 @@ def test_instabot(login, password):
     return user_info['biography']
 
 
+def get_comments_of_post(login, password, post_url):
+    bot = instabot.Bot()
+    bot.login(username=login, password=password)
+    if bot.api.last_response.status_code != 200:
+        return bot.api.last_response
+    post_id = bot.get_media_id_from_link(post_url)
+
+    # comments = bot.get_media_comments_all(post_id)
+    comments = bot.get_media_comments(post_id)        # ONLY FOR DEBUGGING!
+    return comments
 def main():
     load_dotenv()
     inst_login = os.getenv("INST_LOGIN")
@@ -50,6 +60,7 @@ def main():
     # publish_to_instagramm(inst_login, inst_password, args.folder)
     # print(test_instabot(inst_login, inst_password))
 
+    comments = get_comments_of_post(inst_login, inst_password, post_url)
 
 if __name__ == '__main__':
     main()
