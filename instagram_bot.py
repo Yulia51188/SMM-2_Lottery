@@ -13,13 +13,18 @@ def parse_arguments():
             'the conditions of the competition'
     )
     parser.add_argument(
-        'folder',
+        'post_url',
         type=str,
-        help='path to the folder with photos'
-    )        
+        help='URL of Instagram competition post'
+    )    
+    parser.add_argument(
+        'author',
+        type=str,
+        help='Author of Instagram post'
+    )          
     return parser.parse_args()
 
-
+ 
 def test_instabot(login, password):
     bot = instabot.Bot()
     bot.login(username=login, password=password)
@@ -113,11 +118,12 @@ def get_winners(inst_login, inst_password, post_url, author_username):
 def main():
     load_dotenv()
     inst_login = os.getenv("INST_LOGIN")
-    inst_password = os.getenv("INST_PASSWORD")    
-    post_url = "https://www.instagram.com/p/BtON034lPhu/"  
-    author_username = "beautybar.rus"   
+    inst_password = os.getenv("INST_PASSWORD")  
+    args = parse_arguments()  
+    # post_url = "https://www.instagram.com/p/BtON034lPhu/"  
+    # author_username = "beautybar.rus"   
     print(f'Start fetching comments for {post_url}...')
-    pprint(get_winners(inst_login, inst_password, post_url, author_username))
+    pprint(get_winners(inst_login, inst_password, args.post_url, args.author))
 
 
 if __name__ == '__main__':
