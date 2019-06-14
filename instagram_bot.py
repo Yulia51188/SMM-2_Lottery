@@ -7,31 +7,17 @@ import re
 from pprint import pprint
 
 
-
-# def parse_arguments():
-#     parser = argparse.ArgumentParser(
-#         description='Publish photos from the folder to Instagram'
-#     )
-#     parser.add_argument(
-#         'folder',
-#         type=str,
-#         help='path to the folder with photos'
-#     )        
-#     return parser.parse_args()
-
-
-# def publish_to_instagramm(username, password, folder):
-#     bot = instabot.Bot()
-#     bot.login(username=username, password=password)
-#     if bot.api.last_response.status_code != 200:
-#         exit(bot.api.last_response)
-#     file_tree = os.walk(folder)
-#     image_filenames = []
-#     for root, dirs, filenames in file_tree:
-#         image_filenames = [os.path.join(root, filename) for filename in filenames]
-#     for image_filename in image_filenames:
-#         title = os.path.splitext(os.path.basename(image_filename))[0]
-#         bot.upload_photo(image_filename, '{0}'.format(title))
+def parse_arguments():
+    parser = argparse.ArgumentParser(
+        description='The script checks if the participants have fulfilled' 
+            'the conditions of the competition'
+    )
+    parser.add_argument(
+        'folder',
+        type=str,
+        help='path to the folder with photos'
+    )        
+    return parser.parse_args()
 
 
 def test_instabot(login, password):
@@ -46,9 +32,10 @@ def get_comments_of_post(bot, post_url):
     if bot.api.last_response.status_code != 200:
         return bot.api.last_response
     post_id = bot.get_media_id_from_link(post_url)
-    # comments = bot.get_media_comments_all(post_id)  # BASE VERSION
-    comments = bot.get_media_comments(post_id)        # ONLY FOR DEBUGGING!
+    comments = bot.get_media_comments_all(post_id)  # BASE VERSION
+    # comments = bot.get_media_comments(post_id)        # ONLY FOR DEBUGGING!
     return comments
+
 
 def get_friend_ids(comment):
     regex = re.compile("(?:^|[^\\w])(?:@)([A-Za-z0-9_](?:(?:[A-Za-z0-9_]|"
@@ -82,37 +69,55 @@ def valid_user_names_by_real_friends(bot, comments):
             valid_comment.append(comment)
     return valid_comment
 
+
 def valid_user_names_by_likes(bot, participants, media_url):
     media_id = bot.get_media_id_from_link(media_url)
-    print(f"Media_id: {media_id}")
     likers = bot.get_media_likers(media_id)
     for  someone in participants:
         if str(someone["comment"]["user_id"]) in likers:
-            print(f'Someone {someone["comment"]["user_id"]} in likers')
             yield someone
+
+
+def valid_user_names_by_following(bot, participants, author_username):
+    followers = bot.get_user_followers(author_username)
+    for  someone in participants:
+        if str(someone["comment"]["user_id"]) in followers:
+            yield someone
+
+
+def get_winners(inst_login, inst_password, post_url, author_username):
+        bot = instabot.Bot()
+        bot.login(username=inst_login, password=inst_password)
+        comments = get_comments_of_post(bot, post_url)
+        filtered_comments = filter_comments_with_link_to_friend(comments)
+        participants_with_friends = valid_user_names_by_real_friends(
+            bot,
+            filtered_comments,
+        )
+        participants_with_likes = list(valid_user_names_by_likes(
+            bot,
+            participants_with_friends,
+            post_url,
+        ))
+        participants_followers = list(valid_user_names_by_following(
+            bot,
+            participants_with_friends,
+            author_username,
+        ))    
+        participants_id = [(someone["comment"]["user_id"], someone["username"]) 
+                            for someone in participants_followers]
+        winners = set(participants_id)
+        return winners
 
 
 def main():
     load_dotenv()
     inst_login = os.getenv("INST_LOGIN")
     inst_password = os.getenv("INST_PASSWORD")    
-    post_url = "https://www.instagram.com/p/BtON034lPhu/"    
-    bot = instabot.Bot()
-    bot.login(username=inst_login, password=inst_password)
-    comments = get_comments_of_post(bot, post_url)
-    filtered_comments = filter_comments_with_link_to_friend(comments)
-    participants_with_friends = valid_user_names_by_real_friends(
-        bot,
-        filtered_comments,
-    )
-    participants_with_likes = list(valid_user_names_by_likes(
-        bot,
-        participants_with_friends,
-        post_url,
-        ))
-    participants_id = [(someone["comment"]["user_id"], someone["username"]) 
-                        for someone in participants_with_likes]
-    pprint(participants_id)
+    post_url = "https://www.instagram.com/p/BtON034lPhu/"  
+    author_username = "beautybar.rus"   
+    print(f'Start fetching comments for {post_url}...')
+    pprint(get_winners(inst_login, inst_password, post_url, author_username))
 
 
 if __name__ == '__main__':
