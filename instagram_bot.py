@@ -92,6 +92,8 @@ def valid_user_names_by_following(bot, participants, author_username):
 def get_winners(inst_login, inst_password, post_url, author_username):
         bot = instabot.Bot()
         bot.login(username=inst_login, password=inst_password)
+        # TO DO
+        # validation if exception or  wrong input data 
         comments = get_comments_of_post(bot, post_url)
         filtered_comments = filter_comments_with_link_to_friend(comments)
         participants_with_friends = list(valid_user_names_by_real_friends(
