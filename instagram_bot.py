@@ -71,8 +71,7 @@ def valid_user_names_by_real_friends(bot, comments):
                         for username in comment["friends"]]
         if any(friends_ids):
             comment["friend_id"] = friends_ids
-            valid_comment.append(comment)
-    return valid_comment
+            yield comment
 
 
 def valid_user_names_by_likes(bot, participants, media_url):
@@ -95,10 +94,10 @@ def get_winners(inst_login, inst_password, post_url, author_username):
         bot.login(username=inst_login, password=inst_password)
         comments = get_comments_of_post(bot, post_url)
         filtered_comments = filter_comments_with_link_to_friend(comments)
-        participants_with_friends = valid_user_names_by_real_friends(
+        participants_with_friends = list(valid_user_names_by_real_friends(
             bot,
             filtered_comments,
-        )
+        ))
         participants_with_likes = list(valid_user_names_by_likes(
             bot,
             participants_with_friends,
