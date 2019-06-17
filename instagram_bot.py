@@ -22,7 +22,13 @@ def parse_arguments():
         'author',
         type=str,
         help='Author of Instagram post'
-    )          
+    )     
+    parser.add_argument(
+        '-d','--debug_mode',
+        type=bool,
+        default=False,
+        help='Flag to set debug mode with limit of the comment count 20'
+    )     
     return parser.parse_args()
 
  
@@ -40,8 +46,10 @@ def get_comments_of_post(inst_login, inst_password, post_url):
     if bot.api.last_response.status_code != 200:
         return bot.api.last_response
     post_id = bot.get_media_id_from_link(post_url)
-    comments = bot.get_media_comments_all(post_id)  # BASE VERSION
-    # comments = bot.get_media_comments(post_id)        # ONLY FOR DEBUGGING!
+    if not debug_mode:
+        comments = bot.get_media_comments_all(post_id)
+    else:
+        comments = bot.get_media_comments(post_id)      
     return comments
 
 
@@ -69,8 +77,8 @@ def valid_user_names_by_real_friends(inst_login, inst_password, comments):
     bot.login(username=inst_login, password=inst_password)
     print(f'Number of comments with links is {len(comments)}')
     for index, comment in enumerate(comments):
-        
-        print(f'Validate friends {index}')
+        if debug_mode:
+            print(f'Validate friends {index}')
         friends_ids = [bot.get_user_id_from_username(username) 
                         for username in comment["friends"]]
         sleep(1)
@@ -105,6 +113,7 @@ def valid_user_names_by_following(inst_login, inst_password, participants, autho
 
 def get_winners(inst_login, inst_password, post_url, author_username):
 
+def get_winners(inst_login, inst_password, post_url, author_username, 
         # TO DO
         # validation if exception or  wrong input data 
         print('get comments')
@@ -143,10 +152,9 @@ def main():
     inst_login = os.getenv("INST_LOGIN")
     inst_password = os.getenv("INST_PASSWORD")  
     args = parse_arguments()  
-    # post_url = "https://www.instagram.com/p/BtON034lPhu/"  
-    # author_username = "beautybar.rus"   
-    print(f'Start fetching comments for {args.post_url}...')
-    pprint(get_winners(inst_login, inst_password, args.post_url, args.author))
+    print(f'Start fetching comments for {args.post_url}. '
+        'It can takes several minutes!')
+    pprint(get_winners(inst_login, inst_password, args.post_url, args.author, args.debug_mode))
 
 
 if __name__ == '__main__':
