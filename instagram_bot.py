@@ -40,15 +40,15 @@ def test_instabot(login, password):
 
 
 def get_comments_of_post(bot, post_url, debug_mode):
-    if bot.api.last_response.status_code != 200:
-        return bot.api.last_response
     post_id = bot.get_media_id_from_link(post_url)
-    if not post_id:
-        raise IOError("The input URL is wrong or post doesn't exist!")
+    if not bot.api.last_response.status_code == 200:
+        raise ValueError(f"The input URL is wrong or post doesn't exist! {bot.api.last_response}")
     if not debug_mode:
         comments = bot.get_media_comments_all(post_id)
     else:
-        comments = bot.get_media_comments(post_id)      
+        comments = bot.get_media_comments(post_id)    
+    if not bot.api.last_response.status_code == 200:
+        raise ValueError(f"The input URL is wrong or post doesn't exist! {bot.api.last_response}")
     return comments
 
 
@@ -101,13 +101,16 @@ def valid_user_names_by_following(bot, participants, author_username):
             yield someone
 
 
+class AuthError(Exception):
+    pass
+
+
 def get_winners(inst_login, inst_password, post_url, author_username, 
                     debug_mode):
     bot = instabot.Bot()
     bot.login(username=inst_login, password=inst_password)
-    
-        # TO DO
-        # validation if exception or  wrong input data 
+    if not bot.api.last_response.status_code == 200:
+        raise AuthError(f"Can't authozrize in Instagramm {bot.api.last_response}")
     try:
         comments = get_comments_of_post(
             bot, 
@@ -117,6 +120,7 @@ def get_winners(inst_login, inst_password, post_url, author_username,
     except ValueError as error:
         raise ValueError(error)
     filtered_comments = filter_comments_with_link_to_friend(comments)
+    
     participants_with_likes = list(valid_user_names_by_likes(
         bot,
         filtered_comments,
@@ -147,15 +151,20 @@ def main():
     print(f'Start fetching comments for {args.post_url}. '
         'It can takes several minutes!')
     try:
-        pprint(get_winners(
+        winners = get_winners(
             inst_login, 
             inst_password, 
             args.post_url, 
             args.author, 
             args.debug_mode
-        ))
+        )
+    except AuthError as error:
+        print(f"The script failed due to error occured: {error}")
     except ValueError as error:
-        print(f"The script can't get data because of accured error: {error}")
+        print(f"The script failed to get comments due to error occured: {error}")
+    if not winners:
+        exit("Sorry, there are no winners found")
+    pprint('Winners:', winners)
 
 
 if __name__ == '__main__':
