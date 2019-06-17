@@ -120,7 +120,7 @@ def get_winners(inst_login, inst_password, post_url, author_username,
     except ValueError as error:
         raise ValueError(error)
     filtered_comments = filter_comments_with_link_to_friend(comments)
-    if not filtered_comments
+    if not filtered_comments:
         return 
     participants_with_likes = list(valid_user_names_by_likes(
         bot,
