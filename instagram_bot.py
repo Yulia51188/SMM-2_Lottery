@@ -76,9 +76,8 @@ def valid_user_names_by_real_friends(bot, comments, debug_mode):
             print(f'Validate friends {index}')
         friends_ids = [bot.get_user_id_from_username(username) 
                         for username in comment["friends"]]
-        sleep(0.25)
+        sleep(0.5)
         if any(friends_ids):
-            print(f'Get user_id of {comment["comment"]["user_id"]}')
             comment["username"] = bot.get_username_from_user_id(
                     comment["comment"]["user_id"]
             )
@@ -105,6 +104,7 @@ def get_winners(inst_login, inst_password, post_url, author_username,
                     debug_mode):
     bot = instabot.Bot()
     bot.login(username=inst_login, password=inst_password)
+    
         # TO DO
         # validation if exception or  wrong input data 
     comments = get_comments_of_post(
