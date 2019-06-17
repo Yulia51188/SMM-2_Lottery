@@ -40,9 +40,7 @@ def test_instabot(login, password):
     return user_info['biography']
 
 
-def get_comments_of_post(inst_login, inst_password, post_url):
-    bot = instabot.Bot()
-    bot.login(username=inst_login, password=inst_password)
+def get_comments_of_post(bot, post_url, debug_mode):
     if bot.api.last_response.status_code != 200:
         return bot.api.last_response
     post_id = bot.get_media_id_from_link(post_url)
@@ -72,10 +70,7 @@ def filter_comments_with_link_to_friend(comments):
     return comments_with_links
 
 
-def valid_user_names_by_real_friends(inst_login, inst_password, comments):
-    bot = instabot.Bot()
-    bot.login(username=inst_login, password=inst_password)
-    print(f'Number of comments with links is {len(comments)}')
+def valid_user_names_by_real_friends(bot, comments, debug_mode):
     for index, comment in enumerate(comments):
         if debug_mode:
             print(f'Validate friends {index}')
@@ -92,9 +87,7 @@ def valid_user_names_by_real_friends(inst_login, inst_password, comments):
             yield comment
 
 
-def valid_user_names_by_likes(inst_login, inst_password, participants, media_url):
-    bot = instabot.Bot()
-    bot.login(username=inst_login, password=inst_password)
+def valid_user_names_by_likes(bot, participants, media_url):
     media_id = bot.get_media_id_from_link(media_url)
     likers = bot.get_media_likers(media_id)
     for  someone in participants:
@@ -102,49 +95,44 @@ def valid_user_names_by_likes(inst_login, inst_password, participants, media_url
             yield someone
 
 
-def valid_user_names_by_following(inst_login, inst_password, participants, author_username):
-    bot = instabot.Bot()
-    bot.login(username=inst_login, password=inst_password)
+def valid_user_names_by_following(bot, participants, author_username):
     followers = bot.get_user_followers(author_username)
     for  someone in participants:
         if str(someone["comment"]["user_id"]) in followers:
             yield someone
 
 
-def get_winners(inst_login, inst_password, post_url, author_username):
-
 def get_winners(inst_login, inst_password, post_url, author_username, 
+                    debug_mode):
+    bot = instabot.Bot()
+    bot.login(username=inst_login, password=inst_password)
         # TO DO
         # validation if exception or  wrong input data 
-        print('get comments')
-        comments = get_comments_of_post(inst_login, inst_password, post_url)
-        filtered_comments = filter_comments_with_link_to_friend(comments)
-
-        print('validate likes')
-        participants_with_likes = list(valid_user_names_by_likes(
-            inst_login, 
-            inst_password, 
-            filtered_comments,
-            post_url,
-        ))
-        print('validates following') 
-        participants_followers = list(valid_user_names_by_following(
-            inst_login, 
-            inst_password, 
-            participants_with_likes,
-            author_username,
-        ))   
-        print('validate friends')
-        participants_with_friends = list(valid_user_names_by_real_friends(
-            inst_login, 
-            inst_password, 
-            participants_followers,
-        ))
-        #participants_followers = participants_with_friends
-        participants_id = [(someone["comment"]["user_id"], someone["username"]) 
+    comments = get_comments_of_post(
+        bot, 
+        post_url, 
+        debug_mode
+    )
+    filtered_comments = filter_comments_with_link_to_friend(comments)
+    participants_with_likes = list(valid_user_names_by_likes(
+        bot,
+        filtered_comments,
+        post_url,
+    ))
+    participants_followers = list(valid_user_names_by_following(
+        bot,
+        participants_with_likes,
+        author_username,
+    ))   
+    participants_with_friends = list(valid_user_names_by_real_friends(
+        bot, 
+        participants_followers,
+        debug_mode,
+    ))
+    participants_id = [(someone["comment"]["user_id"], someone["username"]) 
                             for someone in participants_with_friends]
-        winners = set(participants_id)
-        return winners
+    winners = set(participants_id)
+    return winners
 
 
 def main():
