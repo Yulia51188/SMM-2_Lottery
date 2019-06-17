@@ -40,13 +40,13 @@ def test_instabot(login, password):
 
 
 def get_comments_of_post(bot, post_url, debug_mode):
-    post_id = bot.get_media_id_from_link(post_url)
+    media_id = bot.get_media_id_from_link(post_url)
     if not bot.api.last_response.status_code == 200:
         raise ValueError(f"The input URL is wrong or post doesn't exist! {bot.api.last_response}")
     if not debug_mode:
-        comments = bot.get_media_comments_all(post_id)
+        comments = bot.get_media_comments_all(media_id)
     else:
-        comments = bot.get_media_comments(post_id)    
+        comments = bot.get_media_comments(media_id)    
     if not bot.api.last_response.status_code == 200:
         raise ValueError(f"The input URL is wrong or post doesn't exist! {bot.api.last_response}")
     return comments
@@ -120,7 +120,8 @@ def get_winners(inst_login, inst_password, post_url, author_username,
     except ValueError as error:
         raise ValueError(error)
     filtered_comments = filter_comments_with_link_to_friend(comments)
-    
+    if not filtered_comments
+        return 
     participants_with_likes = list(valid_user_names_by_likes(
         bot,
         filtered_comments,
