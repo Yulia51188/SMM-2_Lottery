@@ -25,8 +25,7 @@ def parse_arguments():
     )     
     parser.add_argument(
         '-d','--debug_mode',
-        type=bool,
-        default=False,
+        action='store_true',
         help='Flag to set debug mode with limit of the comment count 20'
     )     
     return parser.parse_args()
@@ -139,6 +138,7 @@ def main():
     inst_login = os.getenv("INST_LOGIN")
     inst_password = os.getenv("INST_PASSWORD")  
     args = parse_arguments()  
+    print(f"Debug: {args.debug_mode}")
     print(f'Start fetching comments for {args.post_url}. '
         'It can takes several minutes!')
     pprint(get_winners(inst_login, inst_password, args.post_url, args.author, args.debug_mode))
