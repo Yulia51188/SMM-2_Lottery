@@ -76,8 +76,7 @@ def valid_user_names_by_real_friends(bot, comments, debug_mode):
             print(f'Validate friends {index}')
         friends_ids = [bot.get_user_id_from_username(username) 
                         for username in comment["friends"]]
-        sleep(1)
-        #print(friends_ids)
+        sleep(0.25)
         if any(friends_ids):
             print(f'Get user_id of {comment["comment"]["user_id"]}')
             comment["username"] = bot.get_username_from_user_id(
