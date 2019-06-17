@@ -43,6 +43,8 @@ def get_comments_of_post(bot, post_url, debug_mode):
     if bot.api.last_response.status_code != 200:
         return bot.api.last_response
     post_id = bot.get_media_id_from_link(post_url)
+    if not post_id:
+        raise IOError("The input URL is wrong or post doesn't exist!")
     if not debug_mode:
         comments = bot.get_media_comments_all(post_id)
     else:
@@ -106,11 +108,14 @@ def get_winners(inst_login, inst_password, post_url, author_username,
     
         # TO DO
         # validation if exception or  wrong input data 
-    comments = get_comments_of_post(
-        bot, 
-        post_url, 
-        debug_mode
-    )
+    try:
+        comments = get_comments_of_post(
+            bot, 
+            post_url, 
+            debug_mode
+        )
+    except ValueError as error:
+        raise ValueError(error)
     filtered_comments = filter_comments_with_link_to_friend(comments)
     participants_with_likes = list(valid_user_names_by_likes(
         bot,
@@ -141,7 +146,16 @@ def main():
     print(f"Debug: {args.debug_mode}")
     print(f'Start fetching comments for {args.post_url}. '
         'It can takes several minutes!')
-    pprint(get_winners(inst_login, inst_password, args.post_url, args.author, args.debug_mode))
+    try:
+        pprint(get_winners(
+            inst_login, 
+            inst_password, 
+            args.post_url, 
+            args.author, 
+            args.debug_mode
+        ))
+    except ValueError as error:
+        print(f"The script can't get data because of accured error: {error}")
 
 
 if __name__ == '__main__':
