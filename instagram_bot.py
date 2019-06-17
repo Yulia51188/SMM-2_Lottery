@@ -5,6 +5,7 @@ import instabot
 from dotenv import load_dotenv
 import re
 from pprint import pprint
+from time import sleep
 
 
 def parse_arguments():
@@ -33,7 +34,9 @@ def test_instabot(login, password):
     return user_info['biography']
 
 
-def get_comments_of_post(bot, post_url):
+def get_comments_of_post(inst_login, inst_password, post_url):
+    bot = instabot.Bot()
+    bot.login(username=inst_login, password=inst_password)
     if bot.api.last_response.status_code != 200:
         return bot.api.last_response
     post_id = bot.get_media_id_from_link(post_url)
@@ -61,20 +64,29 @@ def filter_comments_with_link_to_friend(comments):
     return comments_with_links
 
 
-def valid_user_names_by_real_friends(bot, comments):
-    valid_comment = []
-    for comment in comments:
-        comment["username"] = bot.get_username_from_user_id(
-            comment["comment"]["user_id"]
-        )
+def valid_user_names_by_real_friends(inst_login, inst_password, comments):
+    bot = instabot.Bot()
+    bot.login(username=inst_login, password=inst_password)
+    print(f'Number of comments with links is {len(comments)}')
+    for index, comment in enumerate(comments):
+        
+        print(f'Validate friends {index}')
         friends_ids = [bot.get_user_id_from_username(username) 
                         for username in comment["friends"]]
+        sleep(1)
+        #print(friends_ids)
         if any(friends_ids):
+            print(f'Get user_id of {comment["comment"]["user_id"]}')
+            comment["username"] = bot.get_username_from_user_id(
+                    comment["comment"]["user_id"]
+            )
             comment["friend_id"] = friends_ids
             yield comment
 
 
-def valid_user_names_by_likes(bot, participants, media_url):
+def valid_user_names_by_likes(inst_login, inst_password, participants, media_url):
+    bot = instabot.Bot()
+    bot.login(username=inst_login, password=inst_password)
     media_id = bot.get_media_id_from_link(media_url)
     likers = bot.get_media_likers(media_id)
     for  someone in participants:
@@ -82,7 +94,9 @@ def valid_user_names_by_likes(bot, participants, media_url):
             yield someone
 
 
-def valid_user_names_by_following(bot, participants, author_username):
+def valid_user_names_by_following(inst_login, inst_password, participants, author_username):
+    bot = instabot.Bot()
+    bot.login(username=inst_login, password=inst_password)
     followers = bot.get_user_followers(author_username)
     for  someone in participants:
         if str(someone["comment"]["user_id"]) in followers:
@@ -90,28 +104,36 @@ def valid_user_names_by_following(bot, participants, author_username):
 
 
 def get_winners(inst_login, inst_password, post_url, author_username):
-        bot = instabot.Bot()
-        bot.login(username=inst_login, password=inst_password)
+
         # TO DO
         # validation if exception or  wrong input data 
-        comments = get_comments_of_post(bot, post_url)
+        print('get comments')
+        comments = get_comments_of_post(inst_login, inst_password, post_url)
         filtered_comments = filter_comments_with_link_to_friend(comments)
-        participants_with_friends = list(valid_user_names_by_real_friends(
-            bot,
-            filtered_comments,
-        ))
+
+        print('validate likes')
         participants_with_likes = list(valid_user_names_by_likes(
-            bot,
-            participants_with_friends,
+            inst_login, 
+            inst_password, 
+            filtered_comments,
             post_url,
         ))
+        print('validates following') 
         participants_followers = list(valid_user_names_by_following(
-            bot,
-            participants_with_friends,
+            inst_login, 
+            inst_password, 
+            participants_with_likes,
             author_username,
-        ))    
+        ))   
+        print('validate friends')
+        participants_with_friends = list(valid_user_names_by_real_friends(
+            inst_login, 
+            inst_password, 
+            participants_followers,
+        ))
+        #participants_followers = participants_with_friends
         participants_id = [(someone["comment"]["user_id"], someone["username"]) 
-                            for someone in participants_followers]
+                            for someone in participants_with_friends]
         winners = set(participants_id)
         return winners
 
@@ -123,7 +145,7 @@ def main():
     args = parse_arguments()  
     # post_url = "https://www.instagram.com/p/BtON034lPhu/"  
     # author_username = "beautybar.rus"   
-    print(f'Start fetching comments for {post_url}...')
+    print(f'Start fetching comments for {args.post_url}...')
     pprint(get_winners(inst_login, inst_password, args.post_url, args.author))
 
 
