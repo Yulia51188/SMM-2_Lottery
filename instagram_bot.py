@@ -94,7 +94,7 @@ def valid_user_names_by_likes(bot, participants, media_url):
     media_id = bot.get_media_id_from_link(media_url)
     likers = bot.get_media_likers(media_id)
     if not bot.api.last_response.status_code == 200 or not likers:
-        raise ValidationError(f"Can't get the list of person who liked! "
+        raise ValidationError(f"Can't get the list of persons who liked! "
             "{bot.api.last_response}")
     for  someone in participants:
         if str(someone["comment"]["user_id"]) in likers:
