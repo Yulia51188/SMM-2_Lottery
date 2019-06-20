@@ -52,7 +52,11 @@ def get_comments_of_post(bot, post_url, debug_mode):
     return comments
 
 
-def get_friend_ids(comment):
+def get_friend_ids(comment):  
+"""
+Regex from
+https://blog.jstassen.com/2016/03/code-regex-for-instagram-username-and-hashtags/
+"""
     regex = re.compile("(?:^|[^\\w])(?:@)([A-Za-z0-9_](?:(?:[A-Za-z0-9_]|"
         "(?:\\.(?!\\.))){0,28}(?:[A-Za-z0-9_])){0,1})")
     matchArray = regex.findall(comment)
