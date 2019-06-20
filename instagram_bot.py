@@ -53,10 +53,10 @@ def get_comments_of_post(bot, post_url, debug_mode):
 
 
 def get_friend_ids(comment):  
-"""
-Regex from
-https://blog.jstassen.com/2016/03/code-regex-for-instagram-username-and-hashtags/
-"""
+    """
+    Regex from
+    https://blog.jstassen.com/2016/03/code-regex-for-instagram-username-and-hashtags/
+    """
     regex = re.compile("(?:^|[^\\w])(?:@)([A-Za-z0-9_](?:(?:[A-Za-z0-9_]|"
         "(?:\\.(?!\\.))){0,28}(?:[A-Za-z0-9_])){0,1})")
     matchArray = regex.findall(comment)
@@ -86,7 +86,7 @@ def validate_user_names_by_real_friends(bot, comments, debug_mode):
             comment["username"] = bot.get_username_from_user_id(
                     comment["comment"]["user_id"]
             )
-            comment["friend_id"] = friends_ids
+            comment["friend_ids"] = friend_ids
             yield comment
 
 
