@@ -67,7 +67,7 @@ def filter_comments_with_link_to_friend(comments):
     comments_with_links = []
     for index, comment in enumerate(comments):
         friends = get_friend_ids(comment["text"])
-        if len(friends) > 0:
+        if friends:
             comments_with_links.append({
                 'comment': comment, 
                 'friends':friends
