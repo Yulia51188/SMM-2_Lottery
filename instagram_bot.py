@@ -79,10 +79,10 @@ def validate_user_names_by_real_friends(bot, comments, debug_mode):
     for index, comment in enumerate(comments):
         if debug_mode:
             print(f'Validate friends {index}')
-        friends_ids = [bot.get_user_id_from_username(username) 
+        friend_ids = [bot.get_user_id_from_username(username) 
                         for username in comment["friends"]]
         sleep(0.5)
-        if any(friends_ids):
+        if any(friend_ids):
             comment["username"] = bot.get_username_from_user_id(
                     comment["comment"]["user_id"]
             )
@@ -90,23 +90,23 @@ def validate_user_names_by_real_friends(bot, comments, debug_mode):
             yield comment
 
 
-def validate_user_names_by_likes(bot, participants, media_url):
+def validate_user_names_by_likes(bot, comments, media_url):
     media_id = bot.get_media_id_from_link(media_url)
     likers = bot.get_media_likers(media_id)
     if not bot.api.last_response.status_code == 200 or not likers:
         raise ValidationError(f"Can't get the list of persons who liked! "
             "{bot.api.last_response}")
-    for  someone in participants:
-        if str(someone["comment"]["user_id"]) in likers:
-            yield someone
+    for  comment in comments:
+        if str(comment["comment"]["user_id"]) in likers:
+            yield comment
 
 
-def validate_user_names_by_following(bot, participants, author_username):
+def validate_user_names_by_following(bot, comments, author_username):
     followers = bot.get_user_followers(author_username)
     if not bot.api.last_response.status_code == 200 or not followers:
         raise ValidationError(f"Can't get the list of followers: "
             "{bot.api.last_response}")    
-    for  someone in participants:
+    for  someone in comments:
         if str(someone["comment"]["user_id"]) in followers:
             yield someone
 
@@ -165,8 +165,8 @@ def get_winners(inst_login, inst_password, post_url, author_username,
     except ValidationError as error:
         comments_of_followers = comments_with_likes
         validation_errors.append(error)
-    participants_id = [(someone["comment"]["user_id"], someone["username"]) 
-                            for someone in comments_with_friends]
+    participants_id = [(comment["comment"]["user_id"], comment["username"]) 
+                            for comment in comments_with_friends]
     winners = set(participants_id)
     return (winners, validation_errors)
 
