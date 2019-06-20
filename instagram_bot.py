@@ -75,7 +75,7 @@ def filter_comments_with_link_to_friend(comments):
     return comments_with_links
 
 
-def valid_user_names_by_real_friends(bot, comments, debug_mode):
+def validate_user_names_by_real_friends(bot, comments, debug_mode):
     for index, comment in enumerate(comments):
         if debug_mode:
             print(f'Validate friends {index}')
@@ -90,7 +90,7 @@ def valid_user_names_by_real_friends(bot, comments, debug_mode):
             yield comment
 
 
-def valid_user_names_by_likes(bot, participants, media_url):
+def validate_user_names_by_likes(bot, participants, media_url):
     media_id = bot.get_media_id_from_link(media_url)
     likers = bot.get_media_likers(media_id)
     if not bot.api.last_response.status_code == 200 or not likers:
@@ -101,7 +101,7 @@ def valid_user_names_by_likes(bot, participants, media_url):
             yield someone
 
 
-def valid_user_names_by_following(bot, participants, author_username):
+def validate_user_names_by_following(bot, participants, author_username):
     followers = bot.get_user_followers(author_username)
     if not bot.api.last_response.status_code == 200 or not followers:
         raise ValidationError(f"Can't get the list of followers: "
@@ -139,7 +139,7 @@ def get_winners(inst_login, inst_password, post_url, author_username,
         return 
     validation_errors = []
     try:
-        comments_with_likes = list(valid_user_names_by_likes(
+        comments_with_likes = list(validate_user_names_by_likes(
             bot,
             filtered_comments,
             post_url,
@@ -148,7 +148,7 @@ def get_winners(inst_login, inst_password, post_url, author_username,
         comments_with_likes = filtered_comments
         validation_errors.append(error)
     try:    
-        comments_of_followers = list(valid_user_names_by_following(
+        comments_of_followers = list(validate_user_names_by_following(
             bot,
             comments_with_likes,
             author_username,
@@ -157,7 +157,7 @@ def get_winners(inst_login, inst_password, post_url, author_username,
         comments_of_followers = comments_with_likes
         validation_errors.append(error)       
     try:        
-        comments_with_friends = list(valid_user_names_by_real_friends(
+        comments_with_friends = list(validate_user_names_by_real_friends(
             bot, 
             comments_of_followers,
             debug_mode,
